@@ -23,16 +23,19 @@ app.get('/', (req, res) => {
 
 // Socket.IO
 io.on('connection', (socket) => {
-  console.log('Un utilisateur s’est connecté');
-
-  socket.on('chat message', (msg) => {
-    io.emit('chat message', msg); // envoie à tous
-  });
-
-  socket.on('disconnect', () => {
-    console.log('Un utilisateur s’est déconnecté');
-  });
-});
+    console.log('Un utilisateur connecté');
+  
+    socket.on('chat message', (data) => {
+      io.emit('chat message', {
+        pseudo: data.pseudo,
+        message: data.message
+      });
+    });
+  
+    socket.on('disconnect', () => {
+      console.log('Un utilisateur déconnecté');
+    });
+});  
 
 // Lancement du serveur
 const PORT = process.env.PORT || 3000;
