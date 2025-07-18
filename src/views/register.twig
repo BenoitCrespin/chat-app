@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Inscription</title>
+</head>
+<body>
+  <h1>Créer un compte</h1>
+
+  {% if error %}
+    <p style="color: red;">{{ error }}</p>
+  {% endif %}
+
+  <form action="/register" method="POST">
+    <label for="pseudo">Pseudo:</label><br>
+    <input type="text" id="pseudo" name="pseudo" required><br><br>
+
+    <label for="email">Adresse email:</label><br>
+    <input type="email" id="email" name="email" required><br><br>
+
+    <label for="password">Mot de passe:</label><br>
+    <input type="password" id="password" name="password" required><br><br>
+
+    <button type="submit">S’inscrire</button>
+  </form>
+
+  <p><a href="/">Retour à l’accueil</a></p>
+</body>
+</html>
