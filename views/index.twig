@@ -1,50 +1,31 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Mini Chat</title>
-    <link rel="stylesheet" href="/style.css">
-  </head>
-  <body>
-    <h1>Mini Chat</h1>
-    <p style="color: gray">[Version de test v1]</p>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat V3</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <script defer src="/main.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 2em; }
+    #messages { list-style: none; padding: 0; }
+    #messages li { padding: 4px 0; }
+    #pseudo-container, #chat-container { max-width: 500px; margin: auto; }
+  </style>
+</head>
+<body>
+  <div id="pseudo-container">
+    <h2>Entrez votre pseudo</h2>
+    <input type="text" id="pseudo-input" placeholder="Votre pseudo" />
+    <button id="pseudo-submit">Valider</button>
+  </div>
+
+  <div id="chat-container" style="display:none;">
+    <h1>Chat V3</h1>
     <ul id="messages"></ul>
-    <form id="form" action="">
-      <input id="input" autocomplete="off" /><button>Envoyer</button>
+    <form id="form">
+      <input id="message" autocomplete="off" placeholder="Message..." />
+      <button>Envoyer</button>
     </form>
-
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-  const socket = io();
-  let pseudo = '';
-
-  // Demander un pseudo
-  while (!pseudo) {
-    pseudo = prompt("Quel est ton pseudo ?");
-  }
-
-  const form = document.getElementById('form');
-  const input = document.getElementById('input');
-  const messages = document.getElementById('messages');
-
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    if (input.value) {
-      socket.emit('chat message', {
-        pseudo: pseudo,
-        message: input.value
-      });
-      input.value = '';
-    }
-  });
-
-  socket.on('chat message', (data) => {
-    const item = document.createElement('li');
-    item.textContent = `${data.pseudo}: ${data.message}`;
-    messages.appendChild(item);
-    window.scrollTo(0, document.body.scrollHeight);
-  });
-</script>
-
-  </body>
+  </div>
+</body>
 </html>
