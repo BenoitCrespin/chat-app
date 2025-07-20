@@ -1,35 +1,21 @@
-import express from 'express';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
-import twig from 'twig';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 import { PrismaClient } from '@prisma/client';
+import app from './app.js';
+
 import dotenv from 'dotenv';
 dotenv.config();
 
 const prisma = new PrismaClient();
 
-// Pour obtenir __dirname en ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Express et serveur HTTP
-const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 
-// Config Twig
-app.set('views', join(__dirname, 'views'));
-app.set('view engine', 'twig');
-app.engine('twig', twig.renderFile);
-
-// Fichiers statiques
-app.use(express.static(join(__dirname, 'public')));
-
-// Route principale
-app.get('/', (req, res) => {
-  res.render('index.twig');
+// Pour les tests, on peut utiliser un écho simple
+io.on('connection', (socket) => {
+  socket.on('message', (msg) => {
+    socket.emit('message', msg); // réponse écho
+  });
 });
 
 // Socket.IO
@@ -74,3 +60,5 @@ const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
   console.log(`Serveur lancé sur http://localhost:${PORT}`);
 });
+
+export { httpServer, io };
