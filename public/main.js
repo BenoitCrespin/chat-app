@@ -56,6 +56,7 @@ loginForm.addEventListener('submit', async (e) => {
 
   const res = await fetch('/login', {
     method: 'POST',
+    credentials: 'include', // important pour les cookies
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ pseudo, password }),
   });

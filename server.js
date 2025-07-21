@@ -6,9 +6,10 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const httpServer = createServer(app);
+const FRONT_URL = process.env.FRONT_URL || 'http://localhost:3000';
 const io = new Server(httpServer, {
   cors: {
-    origin: true, // ⚠️ À réserver pour les tests ou le développement
+    origin: FRONT_URL,
     credentials: true
   }
 });
