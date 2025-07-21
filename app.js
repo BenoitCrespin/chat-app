@@ -14,15 +14,18 @@ const __dirname = dirname(__filename);
 
 // Express et serveur HTTP
 const app = express();
+const FRONT_URL = process.env.FRONT_URL || 'http://localhost:3000';
 const sessionMiddleware = session({
   secret: 'mon secret',
   resave: false,
   saveUninitialized: false,
   cookie: {
     // sameSite: 'lax', // pour permettre les requêtes POST et navigation depuis le même site
-    sameSite: 'none', // Obligatoire pour Render si front ≠ back
-    secure: process.env.NODE_ENV === 'production', // false en test
-    // httpOnly: true, // pour éviter les accès JavaScript
+    // sameSite: 'none', // Obligatoire pour Render si front ≠ back
+    secure: FRONT_URL !== 'http://localhost:3000', // false en test
+    httpOnly: true, // pour éviter les accès JavaScript
+    sameSite: FRONT_URL === 'http://localhost:3000' ? 'lax' : 'none', // pour les tests locaux
+    domain: FRONT_URL === 'http://localhost:3000' ? undefined : "localhost" // pour les cookies cross-domain
   }
 });
 app.use(sessionMiddleware);
