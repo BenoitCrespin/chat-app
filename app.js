@@ -5,6 +5,8 @@ import { dirname, join } from 'path';
 import { PrismaClient } from '@prisma/client';
 import session from 'express-session';
 import cors from 'cors';
+import bcrypt from 'bcrypt';
+import { hash } from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -64,7 +66,7 @@ app.get('/', (req, res) => {
 
 app.post('/login', async (req, res) => {
   console.log('req.body =', req.body);
-  
+
   const { pseudo, password } = req.body;
   try {
     const user = await prisma.user.findUnique({
@@ -72,14 +74,19 @@ app.post('/login', async (req, res) => {
     });
 
     if (!user) {
+      console.log('Utilisateur non trouvé pour', pseudo);
       return res.status(401).send('Utilisateur non trouvé');
     }
 
-    if (user.password !== password) {
+    const ok = await bcrypt.compare(password, user.password);
+    if (!ok) {
+      console.log('Mot de passe incorrect pour', pseudo);
       return res.status(401).send('Mot de passe incorrect');
     }
 
+
     if (!user.isActive) {
+      console.log('Compte non activé pour', user.pseudo);
       return res.status(403).send('Compte non activé');
     }
 
@@ -88,7 +95,7 @@ app.post('/login', async (req, res) => {
     req.session.pseudo = user.pseudo;
     await req.session.save(); // 👈 assure la persistance
     console.log('Session après login:', req.session);
-    return res.redirect('/'); // à adapter selon ta route principale
+    return res.redirect('/');
   } catch (err) {
     console.error('Erreur connexion', err);
     res.status(500).send('Erreur serveur');
@@ -112,6 +119,43 @@ app.post('/logout', (req, res) => {
     res.clearCookie('connect.sid'); // Important pour Express-session
     return res.redirect('/'); // Redirige vers la page d'accueil
   });
+});
+
+app.get('/register', (req, res) => {
+  if (req.session.userId) {
+    return res.redirect('/'); // déjà connecté → redirection
+  }
+  res.render('register.twig');
+});
+
+app.post('/register', async (req, res) => {
+  const { pseudo, email, password } = req.body;
+
+  if (!pseudo || !email || !password) {
+    return res.render('register.twig', { error: "Tous les champs sont requis." });
+  }
+
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) {
+    return res.render('register.twig', { error: "Cet email est déjà utilisé." });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await prisma.user.create({
+      data: {
+        pseudo,
+        email,
+        password: hashedPassword,
+        isActive: false,
+      }
+    });
+    console.log('Utilisateur créé:', user);
+    res.render('register.twig', { success: "Compte créé avec succès. Veuillez vous connecter." });
+  } catch (err) {
+    console.error("Erreur création compte:", err);
+    res.render('register.twig', { error: "Erreur serveur. Réessaye plus tard." });
+  }
 });
 
 // export default app;
