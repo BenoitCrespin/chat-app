@@ -26,6 +26,8 @@ const sessionMiddleware = session({
     httpOnly: true, // pour éviter les accès JavaScript
     sameSite: FRONT_URL === 'http://localhost:3000' ? 'lax' : 'none', // pour les tests locaux
     domain: FRONT_URL === 'http://localhost:3000' ? "localhost" : undefined, // pour les cookies cross-domain
+    path: '/',
+    maxAge: 3600000, // 1 hour
   }
 });
 console.log("sessionMiddleware = ", sessionMiddleware);
