@@ -13,14 +13,22 @@
   </style>
 </head>
 <body>
-  <div id="pseudo-container">
-    <h2>Entrez votre pseudo</h2>
-    <input type="text" id="pseudo-input" placeholder="Votre pseudo" />
-    <button id="pseudo-submit">Valider</button>
+  {% if not connected %}
+  <div id="login-container">
+    <h2>Connexion</h2>
+    <form id="login-form">
+      <input type="text" name="pseudo" id="pseudo" placeholder="Votre pseudo" required />
+      <input type="password" name="password" id="password" placeholder="Mot de passe" required />
+      <button type="submit">Se connecter</button>
+    </form>
+    <p id="login-error" style="color: red; display: none;">Échec de la connexion.</p>
   </div>
-
+  {% endif %}
   <div id="chat-container" style="display:none;">
     <h1>Chat V3</h1>
+    <form id="logout-form" method="POST" action="/logout">
+      <button type="submit">Déconnexion</button>
+    </form>
     <ul id="messages"></ul>
     <form id="form">
       <input id="message" autocomplete="off" placeholder="Message..." />

@@ -1,15 +1,38 @@
+import session from 'express-session';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
-import { PrismaClient } from '@prisma/client';
-import app from './app.js';
-
+import { app, prisma, sessionMiddleware } from './app.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const prisma = new PrismaClient();
-
 const httpServer = createServer(app);
-const io = new Server(httpServer);
+const io = new Server(httpServer, {
+  cors: {
+    origin: 'http://localhost:3000', // ou ton vrai front si différent
+    credentials: true
+  }
+});
+
+// Pour que les sockets aient accès à req.session
+io.use((socket, next) => {
+  sessionMiddleware(socket.request, {}, () => {
+    if (!socket.request.session || !socket.request.session.userId) {
+      console.log('Session non trouvée ou utilisateur non connecté');
+    } else {
+      console.log('Session récupérée:', socket.request.session);
+    }
+    next();
+  });
+});
+// io.use((socket, next) => {
+//   const cookieHeader = socket.request.headers.cookie;
+//   console.log('Cookie brut reçu par Socket.IO:', cookieHeader);
+//   sessionMiddleware(socket.request, {}, () => {
+//     console.log('Session récupérée:', socket.request.session);
+//     next();
+//   });
+// });
+
 
 // Pour les tests, on peut utiliser un écho simple
 io.on('connection', (socket) => {
@@ -36,16 +59,24 @@ io.on('connection', async (socket) => {
 
   socket.on('chat message', async (data) => {
     try {
+      const session = socket.request.session;
+      console.log('Session:', session);
+      if (!session.userId) {
+        console.error('Utilisateur non connecté');
+        return;
+      }
+      const pseudo = session.pseudo;
+      const message = data.message;
       await prisma.message.create({
         data: {
-          pseudo: data.pseudo,
-          content: data.message,
+          pseudo: pseudo,
+          content: message,
         },
       });
+      io.emit('chat message', {pseudo, message});
     } catch (err) {
       console.error('Erreur sauvegarde message:', err);
     }
-    io.emit('chat message', data);
   });
 
   socket.on('disconnect', () => {
