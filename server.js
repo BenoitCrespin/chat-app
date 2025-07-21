@@ -90,7 +90,7 @@ io.on('connection', async (socket) => {
 // Démarrage
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
-  console.log(`Serveur lancé sur http://localhost:${PORT}`);
+  console.log(`Serveur lancé sur ${FRONT_URL}`);
 });
 
 export { httpServer, io };
