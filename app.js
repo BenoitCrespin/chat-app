@@ -19,8 +19,8 @@ const sessionMiddleware = session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    sameSite: 'lax', // pour permettre les requêtes POST et navigation depuis le même site
-    // sameSite: 'none', // Obligatoire pour Render si front ≠ back
+    // sameSite: 'lax', // pour permettre les requêtes POST et navigation depuis le même site
+    sameSite: 'none', // Obligatoire pour Render si front ≠ back
     secure: process.env.NODE_ENV === 'production', // false en test
     // httpOnly: true, // pour éviter les accès JavaScript
   }
