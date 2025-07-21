@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { PrismaClient } from '@prisma/client';
 import session from 'express-session';
-import { Server } from 'socket.io';
+import cors from 'cors';
 
 const prisma = new PrismaClient();
 
@@ -30,9 +30,14 @@ const sessionMiddleware = session({
     maxAge: 3600000, // 1 hour
   }
 });
-console.log("sessionMiddleware = ", sessionMiddleware);
 app.use(sessionMiddleware);
 
+app.use(
+  cors({
+    origin: FRONT_URL,
+    credentials: true, // pour permettre les cookies
+  })
+);
 
 // Config Twig
 app.set('views', join(__dirname, 'views'));
