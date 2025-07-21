@@ -14,7 +14,6 @@ const io = new Server(httpServer, {
   }
 });
 
-
 // Pour que les sockets aient accès à req.session
 io.use((socket, next) => {
   sessionMiddleware(socket.request, {}, () => {

@@ -20,16 +20,14 @@ const sessionMiddleware = session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    // sameSite: 'lax', // pour permettre les requêtes POST et navigation depuis le même site
-    // sameSite: 'none', // Obligatoire pour Render si front ≠ back
     secure: FRONT_URL !== 'http://localhost:3000', // false en test
     httpOnly: true, // pour éviter les accès JavaScript
     sameSite: FRONT_URL === 'http://localhost:3000' ? 'lax' : 'none', // pour les tests locaux
-    domain: FRONT_URL === 'http://localhost:3000' ? "localhost" : undefined, // pour les cookies cross-domain
     path: '/',
     maxAge: 3600000, // 1 hour
   }
 });
+app.set('trust proxy', 1);
 app.use(sessionMiddleware);
 
 app.use(
@@ -99,6 +97,10 @@ app.post('/login', async (req, res) => {
 
 app.get('/whoami', (req, res) => {
   res.send(`Utilisateur connecté : ${req.session.userId || 'Aucun'}`);
+});
+
+app.get('/check-session', (req, res) => {
+  res.json({ session: req.session });
 });
 
 app.post('/logout', (req, res) => {
