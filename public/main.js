@@ -7,10 +7,11 @@ const socket = io({
 // const chatContainer = document.getElementById('chat-container');
 // const pseudoInput = document.getElementById('pseudo-input');
 // const pseudoSubmit = document.getElementById('pseudo-submit');
-const form = document.getElementById('form');
+const messageForm = document.getElementById('form');
 const input = document.getElementById('message');
 const messages = document.getElementById('messages');
-const newForm = document.getElementById('login-form');
+const loginForm = document.getElementById('login-form');
+const logoutForm = document.getElementById('logout-form');
 
 // let pseudo = null;
 
@@ -24,7 +25,7 @@ const newForm = document.getElementById('login-form');
 //   }
 // });
 
-form.addEventListener('submit', (e) => {
+messageForm.addEventListener('submit', (e) => {
   e.preventDefault();
   if (input.value.trim()) {
     socket.emit('chat message', {
@@ -48,7 +49,7 @@ socket.on('chat history', (msgs) => {
   });
 });
 
-newForm.addEventListener('submit', async (e) => {
+loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const pseudo = document.getElementById('pseudo').value;
   const password = document.getElementById('password').value;
@@ -65,5 +66,18 @@ newForm.addEventListener('submit', async (e) => {
     document.getElementById('chat-container').style.display = 'block';
   } else {
     document.getElementById('login-error').style.display = 'block';
+  }
+});
+
+logoutForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const response = await fetch('/logout', {
+    method: 'POST',
+    credentials: 'include' // important pour les cookies
+  });
+  if (response.ok) {
+    window.location.href = '/'; // Retour à la page d'accueil
+  } else {
+    alert('Erreur lors de la déconnexion.');
   }
 });

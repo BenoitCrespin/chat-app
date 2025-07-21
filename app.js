@@ -20,7 +20,8 @@ const sessionMiddleware = session({
   saveUninitialized: false,
   cookie: {
     sameSite: 'lax', // pour permettre les requêtes POST et navigation depuis le même site
-    secure: false     // autorise HTTP en local (dev)
+    secure: process.env.NODE_ENV === 'production', // false en test
+    httpOnly: true, // pour éviter les accès JavaScript
   }
 });
 app.use(sessionMiddleware);

@@ -8,10 +8,11 @@ dotenv.config();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: 'http://localhost:3000', // ou ton vrai front si différent
+    origin: true, // ⚠️ À réserver pour les tests ou le développement
     credentials: true
   }
 });
+
 
 // Pour que les sockets aient accès à req.session
 io.use((socket, next) => {
