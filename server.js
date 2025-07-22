@@ -13,6 +13,7 @@ const io = new Server(httpServer, {
     credentials: true
   }
 });
+app.set('io', io);
 
 // Pour que les sockets aient accès à req.session
 io.use((socket, next) => {
@@ -25,15 +26,6 @@ io.use((socket, next) => {
     next();
   });
 });
-// io.use((socket, next) => {
-//   const cookieHeader = socket.request.headers.cookie;
-//   console.log('Cookie brut reçu par Socket.IO:', cookieHeader);
-//   sessionMiddleware(socket.request, {}, () => {
-//     console.log('Session récupérée:', socket.request.session);
-//     next();
-//   });
-// });
-
 
 // Pour les tests, on peut utiliser un écho simple
 io.on('connection', (socket) => {
@@ -59,6 +51,7 @@ io.on('connection', async (socket) => {
   }
 
   socket.on('chat message', async (data) => {
+    console.log('Message reçu:', data);
     try {
       const session = socket.request.session;
       console.log('Session:', session);

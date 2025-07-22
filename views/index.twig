@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Chat V4</title>
   <script src="/socket.io/socket.io.js"></script>
-  <script defer src="/main.js"></script>
   <style>
     body { font-family: sans-serif; margin: 2em; }
     #messages { list-style: none; padding: 0; }
@@ -13,28 +12,31 @@
   </style>
 </head>
 <body>
-  {% if not connected %}
+  <h1>Chat V4</h1>
   <div id="login-container">
+    {% if not connected %}
     <h2>Connexion</h2>
-    <form id="login-form">
+    <form id="login-form" method="POST" action="/login">
       <input type="text" name="pseudo" id="pseudo" placeholder="Votre pseudo" required />
       <input type="password" name="password" id="password" placeholder="Mot de passe" required />
       <button type="submit">Se connecter</button>
     </form>
-    <p id="login-error" style="color: red; display: none;">Échec de la connexion.</p>
+    {# <p id="login-error" style="color: red; display: none;">Échec de la connexion.</p> #}
     <p>Pas de compte ? <a href="/register">Créer un compte</a></p>
+    {% endif %}
   </div>
-  {% endif %}
-  <div id="chat-container" style="display:none;">
-    <h1>Chat V4</h1>
+  <div id="chat-container">
+    {% if connected %}
+    <script defer src="/main.js"></script>
     <form id="logout-form" method="POST" action="/logout">
       <button type="submit">Déconnexion</button>
     </form>
     <ul id="messages"></ul>
-    <form id="form">
+    <form id="message-form"> 
       <input id="message" autocomplete="off" placeholder="Message..." />
-      <button>Envoyer</button>
+      <button type="submit">Envoyer</button>
     </form>
+    {% endif %}
   </div>
 </body>
 </html>

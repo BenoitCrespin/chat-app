@@ -7,6 +7,8 @@ import session from 'express-session';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import { hash } from 'crypto';
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 
 const prisma = new PrismaClient();
 
@@ -49,6 +51,28 @@ app.use(express.static(join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// Looking to send emails in production? Check out our Email API/SMTP product!
+var transport = nodemailer.createTransport({
+  host: "sandbox.smtp.mailtrap.io",
+  port: 2525,
+  auth: {
+    user: process.env.MAILTRAP_USER,
+    pass: process.env.MAILTRAP_PASS
+  }
+});
+
+async function sendValidationEmail(to, token) {
+  const validationUrl = `${FRONT_URL}/validate/${token}`;
+  await transport.sendMail({
+    from: '"Chat-app" <no-reply@monapp.com>',
+    to,
+    subject: 'Validez votre compte',
+    html: `<p>Merci pour votre inscription sur chat-app. Cliquez sur le lien suivant pour valider votre compte :</p>
+           <p><a href="${validationUrl}">${validationUrl}</a></p>`
+  });
+  console.log(`Email de validation envoyé à ${to}`);
+}
+
 // Route principale
 // app.get('/', (req, res) => {
 //   res.render('index.twig');
@@ -64,6 +88,7 @@ app.get('/', (req, res) => {
   }
 });
 
+// Route de connexion
 app.post('/login', async (req, res) => {
   console.log('req.body =', req.body);
 
@@ -77,7 +102,7 @@ app.post('/login', async (req, res) => {
       console.log('Utilisateur non trouvé pour', pseudo);
       return res.status(401).send('Utilisateur non trouvé');
     }
-
+ 
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) {
       console.log('Mot de passe incorrect pour', pseudo);
@@ -121,13 +146,13 @@ app.post('/logout', (req, res) => {
   });
 });
 
+// Routes d'inscription
 app.get('/register', (req, res) => {
   if (req.session.userId) {
     return res.redirect('/'); // déjà connecté → redirection
   }
   res.render('register.twig');
 });
-
 app.post('/register', async (req, res) => {
   const { pseudo, email, password } = req.body;
 
@@ -141,6 +166,10 @@ app.post('/register', async (req, res) => {
   }
 
   try {
+    // Envoyer un email de confirmation
+    const token = crypto.randomBytes(32).toString('hex');
+    await sendValidationEmail(email, token);
+    // Créer l'utilisateur avec un mot de passe haché
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
       data: {
@@ -148,6 +177,8 @@ app.post('/register', async (req, res) => {
         email,
         password: hashedPassword,
         isActive: false,
+        token,
+        validated: false
       }
     });
     console.log('Utilisateur créé:', user);
@@ -155,6 +186,41 @@ app.post('/register', async (req, res) => {
   } catch (err) {
     console.error("Erreur création compte:", err);
     res.render('register.twig', { error: "Erreur serveur. Réessaye plus tard." });
+  }
+});
+
+// Route de validation de compte
+app.get('/validate/:token', async (req, res) => {
+  const { token } = req.params;
+
+  try {
+    const user = await prisma.user.findFirst({
+      where: { token }
+    });
+
+    if (!user) {
+      console.log('Lien de validation invalide pour token:', token);
+      return res.status(400).send('Lien invalide ou expiré.');
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isActive: true,
+        validated: true,
+        token: null // 🔒 supprime le token après validation
+      }
+    }); 
+
+    // Enregistre la session
+    req.session.userId = user.id;
+    req.session.pseudo = user.pseudo;
+    await req.session.save(); // Assure la persistance de la session
+    console.log('Session après login:', req.session);
+    return res.redirect('/');
+  } catch (err) {
+    console.error('Erreur validation:', err);
+    res.status(500).send('Erreur serveur');
   }
 });
 
