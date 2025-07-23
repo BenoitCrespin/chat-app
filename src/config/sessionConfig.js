@@ -31,10 +31,13 @@ console.log('REDIS_URL:', REDIS_URL); // Pour déboguer l'URL Redis
 const redisClient = createClient({
   url: REDIS_URL, // Utilisez l'URL de votre serveur Redis
   legacyMode: true, // IMPORTANT: Ajoutez ceci pour la compatibilité avec connect-redis v7 et redis v4+
-  socket: {
-    tls: true, // Utilisez TLS si votre Redis est configuré pour cela
-  }
 });
+// Si l'URL Redis commence par 'rediss://', activez TLS
+if (REDIS_URL && REDIS_URL.startsWith('rediss://')) {
+  redisClient.socket = {
+    tls: true,
+  };
+}
 
 // Gérer les événements de connexion et d'erreur de Redis (pour le débogage)
 redisClient.on('connect', () => console.log('Connecté à Redis!'));
