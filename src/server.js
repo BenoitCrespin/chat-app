@@ -1,5 +1,13 @@
-import dotenv from 'dotenv';
-dotenv.config();
+// import dotenv from 'dotenv';
+// dotenv.config();
+
+console.log('Variables d\'environnement chargées:', {
+  FRONT_URL: process.env.FRONT_URL,
+  REDIS_URL: process.env.REDIS_URL,
+  SESSION_SECRET: process.env.SESSION_SECRET,
+  MAILTRAP_USER: process.env.MAILTRAP_USER,
+  MAILTRAP_PASS: process.env.MAILTRAP_PASS,
+});
 
 import { Server } from 'socket.io';
 import { createServer } from 'http';

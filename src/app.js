@@ -1,3 +1,5 @@
+import 'dotenv/config'; // <-- AJOUTEZ CETTE LIGNE ICI !
+
 import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
