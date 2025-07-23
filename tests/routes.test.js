@@ -1,5 +1,5 @@
 import request from 'supertest';
-import app from '../app.js';
+import app from '../src/app.js';
 
 describe('Test des routes HTTP', () => {
   test('GET / doit renvoyer 200 et du HTML', async () => {

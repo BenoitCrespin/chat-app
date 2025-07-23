@@ -1,5 +1,5 @@
 import { chromium } from 'playwright';
-import { httpServer } from '../server.js';
+import { httpServer } from '../src/server.js';
 
 let browser, page;
 

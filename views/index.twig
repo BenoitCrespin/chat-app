@@ -2,26 +2,23 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Chat V4</title>
+  <title>Chat V5</title>
+  <link rel="stylesheet" href="/style.css" />
   <script src="/socket.io/socket.io.js"></script>
-  <style>
-    body { font-family: sans-serif; margin: 2em; }
-    #messages { list-style: none; padding: 0; }
-    #messages li { padding: 4px 0; }
-    #pseudo-container, #chat-container { max-width: 500px; margin: auto; }
-  </style>
 </head>
 <body>
-  <h1>Chat V4</h1>
+  <h1>Chat V5</h1>
   <div id="login-container">
     {% if not connected %}
     <h2>Connexion</h2>
+    {% if error %}
+      <p class="error">{{ error }}</p>
+    {% endif %}
     <form id="login-form" method="POST" action="/login">
       <input type="text" name="pseudo" id="pseudo" placeholder="Votre pseudo" required />
       <input type="password" name="password" id="password" placeholder="Mot de passe" required />
       <button type="submit">Se connecter</button>
     </form>
-    {# <p id="login-error" style="color: red; display: none;">Échec de la connexion.</p> #}
     <p>Pas de compte ? <a href="/register">Créer un compte</a></p>
     {% endif %}
   </div>
@@ -32,7 +29,7 @@
       <button type="submit">Déconnexion</button>
     </form>
     <ul id="messages"></ul>
-    <form id="message-form"> 
+    <form id="message-form">
       <input id="message" autocomplete="off" placeholder="Message..." />
       <button type="submit">Envoyer</button>
     </form>
