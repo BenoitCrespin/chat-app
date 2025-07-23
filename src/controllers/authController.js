@@ -29,7 +29,7 @@ const register = async (req, res) => {
     const { pseudo, email, password } = req.body;
 
     try {
-        const existing = await prisma.user.findUnique({ where: { email } });
+        let existing = await prisma.user.findUnique({ where: { email } });
         if (existing) {
             return res.render('register', {
                 error: "Cet email est déjà utilisé."
