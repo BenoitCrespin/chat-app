@@ -123,8 +123,9 @@ io.on('connection', async (socket) => { // La fonction est toujours 'async' si v
 // --- NOUVEAU : Fonction pour démarrer le serveur ---
 const startServer = () => {
   const PORT = process.env.PORT || 3000;
+  const HOST = '0.0.0.0';
   return new Promise((resolve) => {
-    httpServer.listen(PORT, () => {
+    httpServer.listen(PORT, HOST, () => {
       console.log(`Serveur Back-end lancé sur http://localhost:${PORT}`);
       console.log(`Le FRONT_URL configuré pour CORS Socket.IO est: ${FRONT_URL}`);
       resolve();
