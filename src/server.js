@@ -85,7 +85,7 @@ io.on('connection', async (socket) => { // La fonction est toujours 'async' si v
                   content: message,
               },
           });
-          const messageToSend = { pseudo, message, timestamp: new Date() };
+          const messageToSend = { pseudo, content: message, timestamp: new Date() };
           console.log(`[SERVER-SOCKET] Message sauvegardé et émis à tous :`, messageToSend);
           io.emit('chat message', messageToSend);
       } catch (err) {
