@@ -1,6 +1,6 @@
 import cors from 'cors';
 
-const FRONT_URL = process.env.FRONT_URL || 'http://localhost:3000';
+const FRONT_URL = process.env.FRONT_URL;
 
 const corsConfig = cors({
   origin: FRONT_URL,

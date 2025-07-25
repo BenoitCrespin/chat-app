@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 
 async function sendValidationEmail(to, token) {
-  const FRONT_URL = process.env.FRONT_URL || 'http://localhost:3000';
+  const FRONT_URL = process.env.FRONT_URL;
   const validationUrl = `${FRONT_URL}/validate/${token}`;
   const transport = nodemailer.createTransport({
     host: "sandbox.smtp.mailtrap.io",
@@ -11,7 +11,7 @@ async function sendValidationEmail(to, token) {
       pass: process.env.MAILTRAP_PASS
     }
   });  
-  console.log(`Envoi de l'email de validation à ${to} avec le transport`, transport); 
+  //console.log(`Envoi de l'email de validation à ${to} avec le transport`, transport); 
   await transport.sendMail({
     from: '"Chat-app" <no-reply@monapp.com>',
     to,
@@ -19,7 +19,7 @@ async function sendValidationEmail(to, token) {
     html: `<p>Merci pour votre inscription sur chat-app. Cliquez sur le lien suivant pour valider votre compte :</p>
            <p><a href="${validationUrl}">${validationUrl}</a></p>`
   });
-  console.log(`Email de validation envoyé à ${to}`);
+  //console.log(`Email de validation envoyé à ${to}`);
 }
 
 export { sendValidationEmail };

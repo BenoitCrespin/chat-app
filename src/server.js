@@ -1,97 +1,146 @@
-// import dotenv from 'dotenv';
-// dotenv.config();
+// server.js
+// Assurez-vous que dotenv/config est appelé au plus tôt dans votre point d'entrée
+// C'est maintenant géré dans app.js, donc pas besoin ici.
 
 console.log('Variables d\'environnement chargées:', {
   FRONT_URL: process.env.FRONT_URL,
-  REDIS_URL: process.env.REDIS_URL,
-  SESSION_SECRET: process.env.SESSION_SECRET,
+  JWT_SECRET: process.env.JWT_SECRET,
   MAILTRAP_USER: process.env.MAILTRAP_USER,
   MAILTRAP_PASS: process.env.MAILTRAP_PASS,
 });
 
 import { Server } from 'socket.io';
 import { createServer } from 'http';
-import { app, prisma, sessionMiddleware } from './app.js';
+import { app, prisma } from './app.js';
+import jwt from 'jsonwebtoken';
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+// Définissez votre clé secrète JWT (doit correspondre à celle de authController)
+const JWT_SECRET = process.env.JWT_SECRET || 'votre_super_cle_secrete_jwt_pour_dev';
 
 const httpServer = createServer(app);
-const FRONT_URL = process.env.FRONT_URL || 'http://localhost:3000';
+const FRONT_URL = process.env.FRONT_URL || 'http://localhost:5173'; // Fallback pour dev si non défini
+
 const io = new Server(httpServer, {
   cors: {
     origin: FRONT_URL,
-    credentials: true
+    credentials: true // Gardez si vous utilisez des cookies pour d'autres raisons, sinon pas strictement nécessaire avec JWT
   }
 });
-app.set('io', io);
+app.set('io', io); // Utile pour accéder à l'instance io depuis les contrôleurs Express
 
-// Pour que les sockets aient accès à req.session
+// src/server.js
+
+// --- Middleware d'authentification Socket.IO ---
 io.use((socket, next) => {
-  sessionMiddleware(socket.request, {}, () => {
-    if (!socket.request.session || !socket.request.session.userId) {
-      console.log('Session non trouvée ou utilisateur non connecté');
-    } else {
-      console.log('Session récupérée:', socket.request.session);
+  // ... votre logique existante ...
+  const token = socket.handshake.auth.token || socket.handshake.query.token;
+  console.log('[SERVER-IO-AUTH] Attempting connection. Token received:', token ? 'YES' : 'NO');
+  if (!token) {
+    console.log('[SERVER-IO-AUTH] No token provided, refusing connection.');
+    return next(new Error('Authentification requise: Aucun token fourni.'));
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, userPayload) => {
+    if (err) {
+      console.error('[SERVER-IO-AUTH] JWT verification FAILED:', err.message);
+      return next(new Error(`Authentification requise: Token invalide ou expiré. Détails: ${err.message}`));
     }
+    socket.user = userPayload;
+    console.log('[SERVER-IO-AUTH] User authenticated with payload:', socket.user);
     next();
   });
 });
 
-// Pour les tests, on peut utiliser un écho simple
-io.on('connection', (socket) => {
-  socket.on('message', (msg) => {
-    socket.emit('message', msg); // réponse écho
+// --- Gestionnaire de connexion Socket.IO principal et UNIQUE ---
+// Notez que la fonction de rappel est directement définie ici.
+// --- Gestionnaire de connexion Socket.IO principal et UNIQUE ---
+io.on('connection', async (socket) => { // La fonction est toujours 'async' si vous faites des await à l'intérieur
+  console.log('Un utilisateur connecté (Socket.IO):', socket.user.pseudo);
+
+  // DÉBUGGAGE: Capture tous les événements reçus par ce socket (gardez-le pour l'instant)
+  socket.onAny((eventName, ...args) => {
+      console.log(`[SERVER-SOCKET-DEBUG] Event received from ${socket.user.pseudo}: "${eventName}"`, args);
   });
-});
 
-// Socket.IO
-io.on('connection', async (socket) => {
-  console.log('Un utilisateur connecté');
-
-  // Récupérer les derniers messages (par exemple, les 50 plus récents)
-  try {
-    const lastMessages = await prisma.message.findMany({
-      orderBy: { createdAt: 'asc' },  // ou 'desc' puis inverser côté client
-      take: 50,
-    });
-    // Envoyer l’historique au client connecté
-    socket.emit('chat history', lastMessages);
-  } catch (err) {
-    console.error('Erreur récupération historique:', err);
-  }
-
+  // --- DÉPLACEZ LA DÉFINITION DE socket.on('chat message') ICI (avant les await) ---
   socket.on('chat message', async (data) => {
-    console.log('Message reçu:', data);
-    try {
-      const session = socket.request.session;
-      console.log('Session:', session);
-      if (!session.userId) {
-        console.error('Utilisateur non connecté');
-        return;
+      console.log(`[SERVER-SOCKET] *** Entrée dans le gestionnaire 'chat message' de ${socket.user.pseudo} ***`);
+      console.log(`[SERVER-SOCKET] Message reçu de ${socket.user.pseudo}:`, data.message);
+
+      try {
+          const userId = socket.user.userId;
+          const pseudo = socket.user.pseudo;
+          const message = data.message;
+
+          if (!message || message.trim() === '') {
+              console.log(`[SERVER-SOCKET] Message vide de ${pseudo}.`);
+              return socket.emit('error message', { type: 'chat_message', message: 'Le message ne peut pas être vide.' });
+          }
+
+          await prisma.message.create({
+              data: {
+                  pseudo: pseudo,
+                  content: message,
+              },
+          });
+          const messageToSend = { pseudo, message, timestamp: new Date() };
+          console.log(`[SERVER-SOCKET] Message sauvegardé et émis à tous :`, messageToSend);
+          io.emit('chat message', messageToSend);
+      } catch (err) {
+          console.error('[SERVER-SOCKET] Erreur lors de la sauvegarde ou de l\'émission du message :', err);
+          socket.emit('error message', { type: 'chat_message', message: 'Impossible d\'envoyer le message.' });
       }
-      const pseudo = session.pseudo;
-      const message = data.message;
-      await prisma.message.create({
-        data: {
-          pseudo: pseudo,
-          content: message,
-        },
-      });
-      io.emit('chat message', {pseudo, message});
-    } catch (err) {
-      console.error('Erreur sauvegarde message:', err);
-    }
   });
 
+  // DÉFINISSEZ TOUS LES AUTRES ÉCOUTEURS (disconnect, etc.) ICI AUSSI
   socket.on('disconnect', () => {
-    console.log('Un utilisateur déconnecté');
+      console.log('Un utilisateur déconnecté (Socket.IO):', socket.user ? socket.user.pseudo : 'Inconnu');
   });
+
+  // --- MAINTENANT, EFFECTUEZ LES OPÉRATIONS ASYNCHRONES ---
+  // Envoyer l'historique du chat à ce client spécifique
+  try {
+      const lastMessages = await prisma.message.findMany({
+          orderBy: { createdAt: 'asc' },
+          take: 50,
+      });
+      socket.emit('chat history', lastMessages);
+      console.log(`[SERVER-SOCKET] Sent chat history to ${socket.user.pseudo}`);
+  } catch (err) {
+      console.error('Erreur récupération historique Socket.IO:', err);
+      socket.emit('error message', { type: 'history_load', message: 'Impossible de charger l\'historique des messages.' });
+  }
 });
-
-
 
 // Démarrage
-const PORT = process.env.PORT || 3000;
-httpServer.listen(PORT, () => {
-  console.log(`Serveur lancé sur ${FRONT_URL}`);
-});
+// const PORT = process.env.PORT || 3000;
+// httpServer.listen(PORT, () => {
+//   console.log(`Serveur Back-end lancé sur http://localhost:${PORT}`);
+//   console.log(`Le FRONT_URL configuré pour CORS Socket.IO est: ${FRONT_URL}`);
+// });
+// --- NOUVEAU : Fonction pour démarrer le serveur ---
+const startServer = () => {
+  const PORT = process.env.PORT || 3000;
+  return new Promise((resolve) => {
+    httpServer.listen(PORT, () => {
+      console.log(`Serveur Back-end lancé sur http://localhost:${PORT}`);
+      console.log(`Le FRONT_URL configuré pour CORS Socket.IO est: ${FRONT_URL}`);
+      resolve();
+    });
+  });
+};
+
+// --- MODIFICATION ICI : Démarrer le serveur uniquement si ce fichier est le point d'entrée principal ---
+// Compare le chemin du fichier actuel avec le chemin du fichier principal du processus
+const __filename = fileURLToPath(import.meta.url); // Convertit import.meta.url en chemin de fichier
+const __dirname = path.dirname(__filename); // Obtient le répertoire parent (utile pour d'autres usages si besoin)
+
+// Compare le chemin absolu du fichier actuel avec le chemin absolu du module principal
+if (process.env.NODE_ENV !== 'test' && path.resolve(__filename) === path.resolve(process.argv[1])) 
+{
+  startServer();
+}
 
 export { httpServer, io };
