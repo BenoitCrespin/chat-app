@@ -2,7 +2,6 @@ import express from 'express';
 import twig from 'twig';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { PrismaClient } from '@prisma/client';
 
 // Pour obtenir __dirname en ES modules
 const __filename = fileURLToPath(import.meta.url);

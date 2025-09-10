@@ -11,13 +11,6 @@ const prisma = new PrismaClient();
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 
-// Pour les tests, on peut utiliser un écho simple
-io.on('connection', (socket) => {
-  socket.on('message', (msg) => {
-    socket.emit('message', msg); // réponse écho
-  });
-});
-
 // Socket.IO
 io.on('connection', async (socket) => {
   console.log('Un utilisateur connecté');
@@ -51,14 +44,6 @@ io.on('connection', async (socket) => {
   socket.on('disconnect', () => {
     console.log('Un utilisateur déconnecté');
   });
-});
-
-
-
-// Démarrage
-const PORT = process.env.PORT || 3000;
-httpServer.listen(PORT, () => {
-  console.log(`Serveur lancé sur http://localhost:${PORT}`);
 });
 
 export { httpServer, io };

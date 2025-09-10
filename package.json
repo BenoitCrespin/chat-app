@@ -4,9 +4,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test:socket": "node --experimental-vm-modules node_modules/.bin/jest tests/socket.test.js",
+    "test:routes": "node --experimental-vm-modules node_modules/.bin/jest tests/routes.test.js",
     "test:e2e": "node --experimental-vm-modules node_modules/.bin/jest tests/session.e2e.test.js",
-    "start": "node server.js"
+    "start": "node index.js"
   },
   "jest": {
     "testEnvironment": "node"
@@ -33,8 +34,8 @@
   "homepage": "https://github.com/BenoitCrespin/chat-app#readme",
   "description": "",
   "devDependencies": {
-    "jest": "^30.0.4",
-    "playwright": "^1.54.1",
+    "jest": "^30.1.3",
+    "playwright": "^1.55.0",
     "socket.io-client": "^4.8.1",
     "supertest": "^7.1.3"
   }
