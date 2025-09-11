@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat V3</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <script defer src="/main.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 2em; }
+    #messages { list-style: none; padding: 0; }
+    #messages li { padding: 4px 0; }
+    #pseudo-container, #chat-container { max-width: 500px; margin: auto; }
+  </style>
+</head>
+<body>
+  <div id="pseudo-container">
+    <h2>Entrez votre pseudo</h2>
+    <input type="text" id="pseudo-input" placeholder="Votre pseudo" />
+    <button id="pseudo-submit">Valider</button>
+  </div>
+
+  <div id="chat-container" style="display:none;">
+    <h1>Chat V3</h1>
+    <ul id="messages"></ul>
+    <form id="form">
+      <input id="message" autocomplete="off" placeholder="Message..." />
+      <button>Envoyer</button>
+    </form>
+  </div>
+</body>
+</html>
+ 
