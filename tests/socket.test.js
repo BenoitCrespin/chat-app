@@ -6,20 +6,19 @@ let clientSocket;
 
 beforeAll(async () => {
     await new Promise((resolve) => {
-        httpServer.listen(3000, 'localhost', () => {
+        httpServer.listen(3001, 'localhost', () => {
             resolve();
         });
     });
 }, 30000);
 
 afterAll(async () => {
-    if (clientSocket?.connected) clientSocket.disconnect();
     await new Promise((resolve) => httpServer.close(resolve));
 }, 30000);
 
 describe('Test des sockets', () => {
     test('Le serveur renvoie le message envoyé', (done) => {
-        clientSocket = new Client('http://localhost:3000');
+        clientSocket = new Client('http://localhost:3001');
 
         clientSocket.on('connect', () => {
             clientSocket.on('chat history', (data) => {
