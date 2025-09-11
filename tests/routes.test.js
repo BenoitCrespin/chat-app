@@ -8,4 +8,4 @@ describe('Test des routes HTTP', () => {
     expect(res.headers['content-type']).toContain('text/html');
     expect(res.text).toMatch(/<!DOCTYPE html>/); // présence du HTML
   });
-});
+}); 
