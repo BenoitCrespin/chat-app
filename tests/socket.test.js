@@ -1,5 +1,5 @@
 // __tests__/socket.test.js
-import { io as Client, io } from 'socket.io-client';
+import { io as Client } from 'socket.io-client';
 import { httpServer } from '../server.js'; // adapte le chemin si nécessaire
 
 let clientSocket;

@@ -4,9 +4,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test:socket": "node --experimental-vm-modules node_modules/.bin/jest tests/socket.test.js",
-    "test:routes": "node --experimental-vm-modules node_modules/.bin/jest tests/routes.test.js",
-    "test:e2e": "node --experimental-vm-modules node_modules/.bin/jest tests/session.e2e.test.js",
+    "test:socket": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/socket.test.js",
+    "test:routes": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/routes.test.js",
+    "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/session.e2e.test.js",
+    "test": "npm run test:socket && npm run test:routes && npm run test:e2e",
     "start": "node index.js"
   },
   "jest": {

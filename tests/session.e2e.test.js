@@ -1,20 +1,20 @@
 // tests/session.e2e.test.js
 import { chromium } from 'playwright';
-import { jest } from '@jest/globals';
 import { httpServer, io } from '../server.js';
 
 let browser, page;
+let clientSocket;
 
 beforeAll(async () => {
   await new Promise((resolve) => {
-    httpServer.listen(3000, 'localhost', () => {
+    httpServer.listen(3001, 'localhost', () => {
       resolve();
     });
   });
   
   browser = await chromium.launch();
   page = await browser.newPage();
-  await page.goto('http://localhost:3000', { waitUntil: 'domcontentloaded' });
+  await page.goto('http://localhost:3001', { waitUntil: 'domcontentloaded' });
 }, 30000);
 
 afterAll(async () => {
@@ -25,6 +25,14 @@ afterAll(async () => {
 
 describe('Session utilisateur', () => {
   test('Session utilisateur complète : envoi et réception d’un message', async () => {
+    // Attendre que Socket.IO soit connecté
+    console.log('Attente connexion Socket.IO');
+    await page.waitForFunction(() => {
+      // Accès à la variable socket définie dans main.js
+      return typeof socket !== 'undefined' && socket.connected;
+    }, { timeout: 10000 });
+    console.log('Socket.IO connecté');
+
     // Entrée du pseudo
     console.log('Attente pseudo-input');
     await page.waitForSelector('#pseudo-input');
@@ -33,10 +41,21 @@ describe('Session utilisateur', () => {
     console.log('Pseudo rempli');
     await page.click('#pseudo-submit');
 
+    // Attente du message "chat history"
+    console.log('Attente chat history');
+    await page.waitForFunction(() => {
+      const messages = document.getElementById('messages');
+      return messages && messages.children.length > 0;
+    }, { timeout: 10000 });
+    console.log('Chat history reçu');
+
     // Attente du chat
     console.log('Attente chat-container');
     await page.waitForSelector('#chat-container', { state: 'visible' });
-    console.log('Chat-container visible');
+    // Récupère le contenu HTML du chat-container
+    const chatContainerHTML = await page.$eval('#messages', el => el.innerHTML);
+    console.log('Contenu du chat-container:', chatContainerHTML);
+    
     // Envoi d’un message
     let randomMessage = Math.random().toString(36).substring(2, 15);
     await page.fill('#message', randomMessage);
