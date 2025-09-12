@@ -47,4 +47,4 @@ socket.on('chat history', (msgs) => {
       li.textContent = `${data.pseudo} : ${data.content}`;
       messages.appendChild(li);
     });
-  });
+  }); 
