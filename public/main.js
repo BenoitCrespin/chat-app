@@ -2,7 +2,7 @@ const socket = io({
   withCredentials: true,
   autoConnect: false,
 });
-
+ 
 // const pseudoContainer = document.getElementById('pseudo-container');
 // const chatContainer = document.getElementById('chat-container');
 // const pseudoInput = document.getElementById('pseudo-input');
