@@ -4,7 +4,7 @@ import { createServer } from 'http';
 import { app, prisma, sessionMiddleware } from './app.js';
 import dotenv from 'dotenv';
 dotenv.config();
-
+ 
 const httpServer = createServer(app);
 const FRONT_URL = process.env.FRONT_URL || 'http://localhost:3000';
 const io = new Server(httpServer, {
