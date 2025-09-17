@@ -71,6 +71,7 @@ app.post('/login', async (req, res) => {
       where: { pseudo },
     });
 
+    console.log('Utilisateur trouvé:', user);
     if (!user) {
       return res.status(401).send('Utilisateur non trouvé');
     }
