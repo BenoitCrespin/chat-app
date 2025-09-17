@@ -104,7 +104,9 @@ app.post('/login', async (req, res) => {
       return res.status(401).send('Utilisateur non trouvé');
     }
  
-    const ok = await bcrypt.compare(password, user.password);
+    const passwordHash = createHash('sha256').update(password).digest('hex');
+    const ok = passwordHash === user.password;
+    console.log('Comparaison des mots de passe:', { ok, passwordHash, userPassword: user.password });
     if (!ok) {
       console.log('Mot de passe incorrect pour', pseudo);
       return res.status(401).send('Mot de passe incorrect');
