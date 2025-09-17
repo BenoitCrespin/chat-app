@@ -6,7 +6,8 @@ import { PrismaClient } from '@prisma/client';
 import session from 'express-session';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
-import { hash } from 'crypto';
+// import { hash } from 'crypto';
+import { createHash } from 'crypto';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 
@@ -170,7 +171,8 @@ app.post('/register', async (req, res) => {
     const token = crypto.randomBytes(32).toString('hex');
     await sendValidationEmail(email, token);
     // Créer l'utilisateur avec un mot de passe haché
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = createHash('sha256').update(password).digest('hex');
     const user = await prisma.user.create({
       data: {
         pseudo,
