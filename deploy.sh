@@ -12,10 +12,11 @@ git push origin "$BRANCH"
 
 echo "🔄 Passage sur master et mise à jour..."
 git checkout master
-git pull origin master
+git fetch origin master
+git reset --hard origin/master  # Force la synchronisation avec la version distante
 
 echo "🔀 Fusion de $BRANCH dans master..."
-git merge "$BRANCH"
+git merge "$BRANCH" --no-ff -m "Publish $BRANCH"
 git push origin master
 
 echo "↩️ Retour sur $BRANCH..."
