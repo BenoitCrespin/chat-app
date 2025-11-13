@@ -80,17 +80,12 @@ app.post('/login', async (req, res) => {
     if (!user) {
       return res.status(401).send('Utilisateur non trouvé');
     }
-<<<<<<< HEAD
-
-    if (user.password !== password) {
-=======
  
     const passwordHash = createHash('sha256').update(password).digest('hex');
     const ok = passwordHash === user.password;
     console.log('Comparaison des mots de passe:', { ok, passwordHash, userPassword: user.password });
     if (!ok) {
       console.log('Mot de passe incorrect pour', pseudo);
->>>>>>> v4
       return res.status(401).send('Mot de passe incorrect');
     }
 
@@ -129,8 +124,6 @@ app.post('/logout', (req, res) => {
   });
 });
 
-<<<<<<< HEAD
-=======
 // Routes d'inscription
 app.get('/register', (req, res) => {
   if (req.session.userId) {
@@ -210,7 +203,6 @@ app.get('/validate/:token', async (req, res) => {
   }
 });
 
->>>>>>> v4
 // export default app;
 export { app, prisma, sessionMiddleware };
 export default app;
