@@ -5,6 +5,11 @@ import { dirname, join } from 'path';
 import { PrismaClient } from '@prisma/client';
 import session from 'express-session';
 import cors from 'cors';
+import bcrypt from 'bcrypt';
+// import { hash } from 'crypto';
+import { createHash } from 'crypto';
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 
 const prisma = new PrismaClient();
 
@@ -75,8 +80,17 @@ app.post('/login', async (req, res) => {
     if (!user) {
       return res.status(401).send('Utilisateur non trouvé');
     }
+<<<<<<< HEAD
 
     if (user.password !== password) {
+=======
+ 
+    const passwordHash = createHash('sha256').update(password).digest('hex');
+    const ok = passwordHash === user.password;
+    console.log('Comparaison des mots de passe:', { ok, passwordHash, userPassword: user.password });
+    if (!ok) {
+      console.log('Mot de passe incorrect pour', pseudo);
+>>>>>>> v4
       return res.status(401).send('Mot de passe incorrect');
     }
 
@@ -115,6 +129,88 @@ app.post('/logout', (req, res) => {
   });
 });
 
+<<<<<<< HEAD
+=======
+// Routes d'inscription
+app.get('/register', (req, res) => {
+  if (req.session.userId) {
+    return res.redirect('/'); // déjà connecté → redirection
+  }
+  res.render('register.twig');
+});
+app.post('/register', async (req, res) => {
+  const { pseudo, email, password } = req.body;
+
+  if (!pseudo || !email || !password) {
+    return res.render('register.twig', { error: "Tous les champs sont requis." });
+  }
+
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) {
+    return res.render('register.twig', { error: "Cet email est déjà utilisé." });
+  }
+
+  try {
+    // Envoyer un email de confirmation
+    const token = crypto.randomBytes(32).toString('hex');
+    await sendValidationEmail(email, token);
+    // Créer l'utilisateur avec un mot de passe haché
+    // const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = createHash('sha256').update(password).digest('hex');
+    const user = await prisma.user.create({
+      data: {
+        pseudo,
+        email,
+        password: hashedPassword,
+        isActive: false,
+        token,
+        validated: false
+      }
+    });
+    console.log('Utilisateur créé:', user);
+    res.render('register.twig', { success: "Compte créé avec succès. Veuillez vous connecter." });
+  } catch (err) {
+    console.error("Erreur création compte:", err);
+    res.render('register.twig', { error: "Erreur serveur. Réessaye plus tard." });
+  }
+});
+
+// Route de validation de compte
+app.get('/validate/:token', async (req, res) => {
+  const { token } = req.params;
+
+  try {
+    const user = await prisma.user.findFirst({
+      where: { token }
+    });
+
+    if (!user) {
+      console.log('Lien de validation invalide pour token:', token);
+      return res.status(400).send('Lien invalide ou expiré.');
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isActive: true,
+        validated: true,
+        token: null // 🔒 supprime le token après validation
+      }
+    }); 
+
+    // Enregistre la session
+    req.session.userId = user.id;
+    req.session.pseudo = user.pseudo;
+    await req.session.save(); // Assure la persistance de la session
+    console.log('Session après login:', req.session);
+    return res.redirect('/');
+  } catch (err) {
+    console.error('Erreur validation:', err);
+    res.status(500).send('Erreur serveur');
+  }
+});
+
+>>>>>>> v4
 // export default app;
 export { app, prisma, sessionMiddleware };
 export default app;
