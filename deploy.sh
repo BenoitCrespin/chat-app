@@ -22,4 +22,4 @@ git push origin master
 echo "↩️ Retour sur $BRANCH..."
 git checkout "$BRANCH"
 
-echo "✅ Déploiement terminé avec succès depuis $BRANCH !"
+echo "✅ Déploiement terminé avec succès depuis $BRANCH !"  
