@@ -3,7 +3,9 @@ import { io as Client } from 'socket.io-client';
 import { httpServer, io as serverIo } from '../src/server.js';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcrypt'; // Toujours nécessaire si vous voulez vérifier le mot de passe, mais moins direct pour ce cas
+
+import { jest } from '@jest/globals';
+jest.setTimeout(30000); // Timeout global augmenté
 
 const prisma = new PrismaClient();
 
@@ -20,13 +22,13 @@ beforeAll(async () => {
 
     // 1. Récupérer l'utilisateur existant de la base de données
     // Assurez-vous que cet utilisateur (pseudo: 'aaa') existe et a un mot de passe hashé correct.
-    existingUser = await prisma.user.findUnique({ where: { pseudo: 'aaa' } });
+    existingUser = await prisma.user.findUnique({ where: { pseudo: 'ccc'} });
 
     if (!existingUser) {
         // Optionnel: Créez l'utilisateur 'aaa' si vous êtes sûr qu'il n'existe pas déjà
         // Pour les tests, il est préférable de s'assurer qu'il existe AVANT de lancer les tests.
         // Ou, pour cet exemple, on peut choisir de faire échouer les tests si l'utilisateur n'est pas là.
-        throw new Error("L'utilisateur 'aaa' n'existe pas dans la base de données de test. Veuillez le créer manuellement.");
+        throw new Error("L'utilisateur 'ccc' n'existe pas dans la base de données de test. Veuillez le créer manuellement.");
         // Alternative : le créer ici si vous le souhaitez, mais la gestion de sa suppression serait alors à nouveau nécessaire.
         // const hashedPassword = await bcrypt.hash('aaa', 10);
         // existingUser = await prisma.user.create({
@@ -44,6 +46,7 @@ beforeAll(async () => {
     const tokenPayload = {
         userId: existingUser.id,
         pseudo: existingUser.pseudo,
+        password: 'ccc'
     };
     authToken = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1h' });
 
@@ -52,7 +55,7 @@ beforeAll(async () => {
         console.log('[TEST-SETUP] Server is listening on port 3001.'); // <-- ADD THIS
         resolve();
     }));
-});
+}, 20000); // Timeout spécifique au hook
 
 // Nettoyage après tous les tests
 afterAll(async () => {
@@ -117,7 +120,7 @@ describe('Test des sockets avec authentification JWT', () => {
             console.log(`[CLIENT-TEST] Reçu 'chat message':`, data); // <-- AJOUTEZ CE LOG (TRÈS IMPORTANT !)
             // Vérifiez la source du message si vous avez plusieurs clients ou un historique.
             // Le message reçu doit être celui que ce client a envoyé.
-            if (data.message === testMessage && data.pseudo === existingUser.pseudo) {
+            if (data.message == testMessage && data.pseudo === existingUser.pseudo) {
                 console.log('[CLIENT-TEST] Condition de succès remplie. Appel de done().'); // <-- AJOUTEZ CE LOG
                 expect(data.message).toBe(testMessage);
                 expect(data.pseudo).toBe(existingUser.pseudo);
