@@ -120,9 +120,10 @@ describe('Test des sockets avec authentification JWT', () => {
             console.log(`[CLIENT-TEST] Reçu 'chat message':`, data); // <-- AJOUTEZ CE LOG (TRÈS IMPORTANT !)
             // Vérifiez la source du message si vous avez plusieurs clients ou un historique.
             // Le message reçu doit être celui que ce client a envoyé.
-            if (data.message == testMessage && data.pseudo === existingUser.pseudo) {
+            // if (data.message == testMessage && data.pseudo === existingUser.pseudo) {
+            if (data.content == testMessage && data.pseudo === existingUser.pseudo) {
                 console.log('[CLIENT-TEST] Condition de succès remplie. Appel de done().'); // <-- AJOUTEZ CE LOG
-                expect(data.message).toBe(testMessage);
+                expect(data.content).toBe(testMessage);
                 expect(data.pseudo).toBe(existingUser.pseudo);
                 chatClient.disconnect();
                 done();
